@@ -2,138 +2,124 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Редактор светлячков</title>
+  <title>Редактор маски светлячков</title>
   <style>
     body {
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(#0a0a0a, #1a1a1a);
-      color: #e0ffee;
-      padding: 30px;
+      background: #0a0f1e;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .editor {
+      background: rgba(20, 30, 50, 0.8);
+      padding: 20px;
+      border-radius: 20px;
+      width: 600px;
+      box-shadow: 0 0 20px #00ffee55;
+    }
+    h1 {
+      font-size: 24px;
       text-align: center;
-    }
-    .logo {
-      width: 100px;
-      margin-bottom: 20px;
-      filter: drop-shadow(0 0 10px #00ffc3);
-    }
-    h2 {
-      margin-bottom: 10px;
-      color: #00ffc3;
-      text-shadow: 0 0 5px #00ffc3;
     }
     label {
       display: block;
-      margin: 15px 0 5px;
-      font-weight: bold;
+      margin: 10px 0 5px;
     }
-    select {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      background: #222;
-      color: #00ffc3;
-      border: 2px solid #00ffc3;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #00ffc3;
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 0 10px #00ffc3;
-    }
-    button:hover {
-      background: #00ffaa;
-    }
-    textarea {
-      width: 90%;
-      height: 120px;
-      margin-top: 30px;
-      background: #111;
-      color: #ccfffa;
-      border: 1px solid #00ffc3;
-      border-radius: 8px;
-      padding: 10px;
-      font-family: monospace;
-      font-size: 14px;
-      resize: none;
-      box-shadow: inset 0 0 10px #00ffc3;
-    }
-    iframe.preview {
+    input, select {
       width: 100%;
-      height: 200px;
-      margin-top: 20px;
-      border: 2px solid #00ffc3;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #00ffc3;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 10px;
     }
-    .copyright {
-      margin-top: 40px;
-      font-size: 14px;
+    .code-box {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 10px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
       color: #888;
     }
-    .copyright span {
-      color: #00ffc3;
+    img.logo {
+      width: 80px;
+      display: block;
+      margin: 0 auto 10px;
     }
   </style>
 </head>
 <body>
-  <img src="https://nikashum93.github.io/pusyriki/assets/kgb-logo.png" alt="KGB Logo" class="logo" />
-  <h2>Редактор маски светлячков</h2>
+  <img src="https://nikashum93.github.io/pusyriki/assets/kgb-logo.png" alt="КГБ" class="logo">
+  <div class="editor">
+    <h1>Редактор маски со светлячками ✨</h1>
 
-  <label for="color">Цвет светлячков:</label>
-  <select id="color" onchange="updatePreview()">
-    <option value="#ffffaa">Тёплый жёлтый</option>
-    <option value="#aaffff">Холодный голубой</option>
-    <option value="#ff88ff">Розовый</option>
-    <option value="#00ff88">Зелёный</option>
-    <option value="#aa88ff">Фиолетовый</option>
-    <option value="rainbow">Разноцветные</option>
-    <option value="shimmer">Переливающиеся</option>
-  </select>
+    <label for="color">Цвет светлячков:</label>
+    <select id="color">
+      <option value="#ffffaa">Жёлтый</option>
+      <option value="#88ff88">Зелёный</option>
+      <option value="#cc88ff">Фиолетовый</option>
+      <option value="rainbow">Переливающийся</option>
+    </select>
 
-  <label for="effect">Спецэффект:</label>
-  <select id="effect" onchange="updatePreview()">
-    <option value="glow">Мягкое свечение</option>
-    <option value="bigglow">Крупные светлячки</option>
-    <option value="sparkle">Блёстки</option>
-    <option value="pulse">Пульсация</option>
-    <option value="trails">Световые следы</option>
-    <option value="chaos">Хаотичный вихрь</option>
-    <option value="fog">Туман</option>
-  </select>
+    <label for="effect">Эффект:</label>
+    <select id="effect">
+      <option value="glow">Свечение</option>
+      <option value="sparkle">Искры</option>
+      <option value="pulse">Пульсация</option>
+      <option value="chaos">Хаос</option>
+      <option value="trails">Шлейфы</option>
+    </select>
 
-  <button onclick="generateIframe()">Сгенерировать код</button>
+    <label for="size">Размер светлячков:</label>
+    <input type="range" id="size" min="1" max="10" value="4">
 
-  <textarea id="output" readonly placeholder="Здесь появится ваш iframe-код..."></textarea>
+    <label><input type="checkbox" id="fog"> Включить туман</label>
 
-  <iframe id="preview" class="preview" src=""></iframe>
+    <label for="fogColor">Цвет тумана:</label>
+    <input type="color" id="fogColor" value="#ccffff">
+
+    <label for="fogOpacity">Прозрачность тумана:</label>
+    <input type="range" id="fogOpacity" min="0" max="1" step="0.05" value="0.3">
+
+    <h3>Код вставки:</h3>
+    <div class="code-box" id="code"></div>
+  </div>
+
+  <div class="footer">&copy; Корпорация Геймификации Будущего</div>
 
   <script>
-    function generateIframe() {
-      const color = document.getElementById("color").value;
-      const effect = document.getElementById("effect").value;
-      const iframeCode = `<iframe src='https://nikashum93.github.io/fireflies-plugin/main.html?color=${encodeURIComponent(color)}&effect=${encodeURIComponent(effect)}' width='100%' height='100%' style='border:0;'></iframe>`;
-      document.getElementById("output").value = iframeCode;
+    const color = document.getElementById('color');
+    const effect = document.getElementById('effect');
+    const size = document.getElementById('size');
+    const fog = document.getElementById('fog');
+    const fogColor = document.getElementById('fogColor');
+    const fogOpacity = document.getElementById('fogOpacity');
+    const codeBox = document.getElementById('code');
+
+    function updateCode() {
+      let url = 'main.html?';
+      url += `color=${encodeURIComponent(color.value)}`;
+      url += `&effect=${effect.value}`;
+      url += `&fireflySize=${size.value}`;
+      if (fog.checked) {
+        url += `&fog=true&fogColor=${encodeURIComponent(fogColor.value)}&fogOpacity=${fogOpacity.value}`;
+      }
+      codeBox.textContent = `<iframe src="${url}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
     }
 
-    function updatePreview() {
-      const color = document.getElementById("color").value;
-      const effect = document.getElementById("effect").value;
-      const previewUrl = `https://nikashum93.github.io/fireflies-plugin/main.html?color=${encodeURIComponent(color)}&effect=${encodeURIComponent(effect)}`;
-      document.getElementById("preview").src = previewUrl;
-    }
-
-    updatePreview();
+    document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updateCode));
+    updateCode();
   </script>
-
-  <p class="copyright">
-    © 2025 <span>Корпорация Геймификации Будущего</span>. Все права защищены.
-  </p>
 </body>
 </html>
