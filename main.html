@@ -9,7 +9,6 @@
       background: #000;
       overflow: hidden;
     }
-
     canvas {
       display: block;
     }
@@ -19,9 +18,9 @@
   <canvas id="canvas"></canvas>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const fireflyColor = urlParams.get('color') || '#ffffaa';
-    const effect = urlParams.get('effect') || 'glow';
+    const color = urlParams.get('color') || '#ffffaa';
     const fireflySize = parseFloat(urlParams.get('fireflySize')) || 4;
+    const effect = urlParams.get('effect') || 'glow';
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -37,27 +36,32 @@
     const fireflies = Array.from({ length: 80 }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      size: fireflySize * (0.5 + Math.random()),
+      radius: fireflySize * (0.5 + Math.random() * 1.5),
       angle: Math.random() * Math.PI * 2,
-      speed: 0.3 + Math.random() * 0.7,
-      drift: 0.5 + Math.random(),
+      speed: 0.2 + Math.random() * 0.4,
+      depth: 0.5 + Math.random(),
       phase: Math.random() * 100
     }));
 
     function drawFirefly(f) {
-      const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size * 10);
-      const color = fireflyColor === 'rainbow'
-        ? `hsl(${(Date.now() / 20 + f.phase * 10) % 360}, 100%, 70%)`
-        : fireflyColor === 'shimmer'
-          ? `hsl(${(f.phase * 100 + Date.now() / 15) % 360}, 100%, 85%)`
-          : fireflyColor;
+      const size = f.radius * (1 + 0.3 * Math.sin(Date.now() / 500 + f.phase));
+      const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, size * 4);
+      
+      let finalColor;
+      if (color === 'rainbow') {
+        finalColor = `hsl(${(Date.now() / 20 + f.phase * 10) % 360}, 100%, 70%)`;
+      } else if (color === 'shimmer') {
+        finalColor = `hsl(${(f.phase * 100 + Date.now() / 10) % 360}, 100%, 85%)`;
+      } else {
+        finalColor = color;
+      }
 
-      gradient.addColorStop(0, color.replace(')', ', 0.6)').replace('rgb', 'rgba'));
-      gradient.addColorStop(1, color.replace(')', ', 0)').replace('rgb', 'rgba'));
+      grad.addColorStop(0, finalColor);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
 
-      ctx.fillStyle = gradient;
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+      ctx.arc(f.x, f.y, size, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -65,10 +69,10 @@
       ctx.clearRect(0, 0, w, h);
 
       fireflies.forEach(f => {
-        f.x += Math.cos(f.angle + f.phase) * f.drift;
-        f.y += Math.sin(f.angle + f.phase) * f.drift;
+        f.x += Math.cos(f.angle) * f.speed;
+        f.y += Math.sin(f.angle) * f.speed;
 
-        f.phase += 0.005;
+        f.phase += 0.002;
 
         if (f.x < 0) f.x = w;
         if (f.x > w) f.x = 0;
