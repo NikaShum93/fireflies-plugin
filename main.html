@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fireflies</title>
   <style>
     html, body {
@@ -10,80 +11,72 @@
       background: transparent;
       overflow: hidden;
     }
+
     canvas {
+      width: 100%;
+      height: 100%;
       display: block;
+      position: absolute;
     }
   </style>
 </head>
 <body>
-<canvas id="canvas"></canvas>
-<script>
-  const url = new URL(window.location.href);
-  const color = url.searchParams.get('color') || '#ffffaa';
-  const effect = url.searchParams.get('effect') || 'glow';
-  const fireflySize = parseFloat(url.searchParams.get('fireflySize')) || 4;
+  <canvas id="fireflies"></canvas>
 
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const color = urlParams.get("color") || "#ffffaa";
+    const rainbow = color === "rainbow";
+    const baseSize = parseFloat(urlParams.get("fireflySize")) || 4;
 
-  let width, height;
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
+    const canvas = document.getElementById("fireflies");
+    const ctx = canvas.getContext("2d");
 
-  const fireflies = [];
-  for (let i = 0; i < 60; i++) {
-    fireflies.push({
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    const fireflies = Array.from({length: 60}, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-      r: Math.random() * 1.5 + 1,
-      scale: Math.random() * 0.7 + 0.7,
-      alpha: Math.random() * 0.5 + 0.5
-    });
-  }
+      r: baseSize * (0.5 + Math.random()),
+      dx: Math.random() * 0.6 - 0.3,
+      dy: Math.random() * 0.6 - 0.3,
+      hue: Math.random() * 360
+    }));
 
-  function draw() {
-    ctx.clearRect(0, 0, width, height);
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      fireflies.forEach(f => {
+        f.x += f.dx;
+        f.y += f.dy;
 
-    fireflies.forEach(f => {
-      f.x += f.vx;
-      f.y += f.vy;
+        if (f.x < 0 || f.x > width) f.dx *= -1;
+        if (f.y < 0 || f.y > height) f.dy *= -1;
 
-      if (f.x < 0 || f.x > width) f.vx *= -1;
-      if (f.y < 0 || f.y > height) f.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
 
-      const radius = fireflySize * f.scale;
-      const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius);
+        if (rainbow) {
+          ctx.fillStyle = `hsla(${f.hue}, 100%, 70%, 0.9)`;
+          f.hue = (f.hue + 0.5) % 360;
+        } else {
+          ctx.fillStyle = color;
+        }
 
-      let finalColor;
-      if (color === 'rainbow') {
-        finalColor = `hsl(${(f.x + f.y + Date.now() / 10) % 360}, 100%, 70%)`;
-      } else if (color === 'shimmer') {
-        finalColor = `hsl(${(Date.now() / 5 + f.x) % 360}, 100%, 85%)`;
-      } else {
-        finalColor = color;
-      }
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = f.r * 4;
+        ctx.fill();
+      });
 
-      gradient.addColorStop(0, finalColor);
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      requestAnimationFrame(draw);
+    }
 
-      ctx.globalAlpha = f.alpha;
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, radius, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(draw);
-  }
-
-  draw();
-</script>
+    draw();
+  </script>
 </body>
 </html>
