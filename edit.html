@@ -1,36 +1,76 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <title>Редактор светлячков</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 20px;
-      background: #111;
-      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(#0a0a0a, #1a1a1a);
+      color: #e0ffee;
+      padding: 30px;
+      text-align: center;
+    }
+    .logo {
+      width: 100px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 10px #00ffc3);
+    }
+    h2 {
+      margin-bottom: 10px;
+      color: #00ffc3;
+      text-shadow: 0 0 5px #00ffc3;
     }
     label {
       display: block;
-      margin: 10px 0 5px;
+      margin: 15px 0 5px;
+      font-weight: bold;
     }
-    input[type="color"], select {
-      padding: 5px;
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      background: #222;
+      color: #00ffc3;
+      border: 2px solid #00ffc3;
     }
     button {
       margin-top: 20px;
-      padding: 8px 16px;
-      background: #0f0;
+      padding: 10px 20px;
+      background: #00ffc3;
+      color: #000;
       border: none;
+      border-radius: 8px;
       font-weight: bold;
+      font-size: 16px;
       cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 10px #00ffc3;
+    }
+    button:hover {
+      background: #00ffaa;
+    }
+    textarea {
+      width: 90%;
+      height: 120px;
+      margin-top: 30px;
+      background: #111;
+      color: #ccfffa;
+      border: 1px solid #00ffc3;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      resize: none;
+      box-shadow: inset 0 0 10px #00ffc3;
     }
   </style>
 </head>
 <body>
-  <h2>Настройка светлячков</h2>
+  <img src="https://raw.githubusercontent.com/NikaShum93/genially-kgb-style/main/logo-kgb.png" alt="KGB Logo" class="logo" />
+  <h2>Редактор маски светлячков</h2>
 
-  <label for="color">Выберите цвет светлячков:</label>
+  <label for="color">Цвет светлячков:</label>
   <select id="color">
     <option value="#ffffaa">Тёплый жёлтый</option>
     <option value="#aaffff">Холодный голубой</option>
@@ -38,13 +78,15 @@
     <option value="rainbow">Разноцветные</option>
   </select>
 
-  <button onclick="save()">Сохранить</button>
+  <button onclick="generateIframe()">Сгенерировать код</button>
+
+  <textarea id="output" readonly placeholder="Здесь появится ваш iframe-код..."></textarea>
 
   <script>
-    function save() {
+    function generateIframe() {
       const color = document.getElementById("color").value;
-      const url = `main.html?color=${encodeURIComponent(color)}`;
-      parent.postMessage({ pluginMessage: { url } }, "*");
+      const iframeCode = `<iframe src='https://nikashum93.github.io/fireflies-plugin/main.html?color=${encodeURIComponent(color)}' width='100%' height='100%' style='border:0;'></iframe>`;
+      document.getElementById("output").value = iframeCode;
     }
   </script>
 </body>
