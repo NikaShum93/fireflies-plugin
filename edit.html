@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Редактор маски светлячков</title>
+  <title>Редактор Спецэффектов \"Светлячки\"</title>
   <style>
     body {
       margin: 0;
@@ -10,22 +10,33 @@
       background: #0a0f1e;
       color: #fff;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: start;
-      min-height: 100vh;
-      padding: 20px;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      gap: 40px;
+      background: rgba(20, 30, 50, 0.85);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 0 25px #00ffc366;
     }
     .editor {
-      background: rgba(20, 30, 50, 0.8);
-      padding: 20px;
-      border-radius: 20px;
-      width: 600px;
-      box-shadow: 0 0 20px #00ffee55;
+      width: 400px;
+    }
+    .preview {
+      width: 480px;
+      height: 480px;
+      border: 2px solid #00ffc3;
+      border-radius: 16px;
+      box-shadow: 0 0 15px #00ffc3;
     }
     h1 {
-      font-size: 24px;
+      font-size: 20px;
       text-align: center;
+      margin-bottom: 20px;
     }
     label {
       display: block;
@@ -34,9 +45,9 @@
     input, select {
       width: 100%;
       padding: 8px;
-      margin-bottom: 10px;
-      border: none;
       border-radius: 10px;
+      border: none;
+      margin-bottom: 10px;
     }
     .code-box {
       background: #111;
@@ -44,59 +55,66 @@
       padding: 10px;
       border-radius: 10px;
       font-family: monospace;
-      word-break: break-all;
+      word-break: break-word;
+      font-size: 12px;
+    }
+    .logo {
+      display: block;
+      width: 80px;
+      margin: 0 auto 10px;
+      filter: drop-shadow(0 0 5px #00ffc3);
     }
     .footer {
       text-align: center;
-      margin-top: 20px;
       font-size: 12px;
       color: #888;
-    }
-    img.logo {
-      width: 80px;
-      display: block;
-      margin: 0 auto 10px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <img src="https://nikashum93.github.io/pusyriki/assets/kgb-logo.png" alt="КГБ" class="logo">
-  <div class="editor">
-    <h1>Редактор маски со светлячками ✨</h1>
+  <div class="container">
+    <div class="editor">
+      <img src="https://nikashum93.github.io/pusyriki/assets/kgb-logo.png" alt="КГБ" class="logo">
+      <h1>Редактор Спецэффектов "Светлячки"</h1>
 
-    <label for="color">Цвет светлячков:</label>
-    <select id="color">
-      <option value="#ffffaa">Жёлтый</option>
-      <option value="#88ff88">Зелёный</option>
-      <option value="#cc88ff">Фиолетовый</option>
-      <option value="rainbow">Переливающийся</option>
-    </select>
+      <label for="color">Цвет светлячков:</label>
+      <select id="color">
+        <option value="#ffffaa">Жёлтый</option>
+        <option value="#aaffff">Холодный голубой</option>
+        <option value="#88ff88">Зелёный</option>
+        <option value="#cc88ff">Фиолетовый</option>
+        <option value="rainbow">Радужный</option>
+        <option value="shimmer">Переливающийся</option>
+      </select>
 
-    <label for="effect">Эффект:</label>
-    <select id="effect">
-      <option value="glow">Свечение</option>
-      <option value="sparkle">Искры</option>
-      <option value="pulse">Пульсация</option>
-      <option value="chaos">Хаос</option>
-      <option value="trails">Шлейфы</option>
-    </select>
+      <label for="effect">Эффект:</label>
+      <select id="effect">
+        <option value="glow">Свечение</option>
+        <option value="sparkle">Искры</option>
+        <option value="pulse">Пульсация</option>
+        <option value="chaos">Хаос</option>
+        <option value="trails">Шлейфы</option>
+      </select>
 
-    <label for="size">Размер светлячков:</label>
-    <input type="range" id="size" min="1" max="10" value="4">
+      <label for="size">Размер светлячков:</label>
+      <input type="range" id="size" min="1" max="10" value="4">
 
-    <label><input type="checkbox" id="fog"> Включить туман</label>
+      <label><input type="checkbox" id="fog"> Включить туман</label>
 
-    <label for="fogColor">Цвет тумана:</label>
-    <input type="color" id="fogColor" value="#ccffff">
+      <label for="fogColor">Цвет тумана:</label>
+      <input type="color" id="fogColor" value="#ccffff">
 
-    <label for="fogOpacity">Прозрачность тумана:</label>
-    <input type="range" id="fogOpacity" min="0" max="1" step="0.05" value="0.3">
+      <label for="fogOpacity">Прозрачность тумана:</label>
+      <input type="range" id="fogOpacity" min="0" max="1" step="0.05" value="0.3">
 
-    <h3>Код вставки:</h3>
-    <div class="code-box" id="code"></div>
+      <label>Код вставки:</label>
+      <div class="code-box" id="code"></div>
+      <div class="footer">&copy; 2025 Корпорация Геймификации Будущего</div>
+    </div>
+
+    <iframe id="preview" class="preview" src=""></iframe>
   </div>
-
-  <div class="footer">&copy; Корпорация Геймификации Будущего</div>
 
   <script>
     const color = document.getElementById('color');
@@ -106,16 +124,19 @@
     const fogColor = document.getElementById('fogColor');
     const fogOpacity = document.getElementById('fogOpacity');
     const codeBox = document.getElementById('code');
+    const preview = document.getElementById('preview');
 
     function updateCode() {
-      let url = 'main.html?';
+      let url = 'https://nikashum93.github.io/fireflies-plugin/main.html?';
       url += `color=${encodeURIComponent(color.value)}`;
       url += `&effect=${effect.value}`;
       url += `&fireflySize=${size.value}`;
       if (fog.checked) {
         url += `&fog=true&fogColor=${encodeURIComponent(fogColor.value)}&fogOpacity=${fogOpacity.value}`;
       }
-      codeBox.textContent = `<iframe src="${url}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
+      const iframe = `<iframe src=\"${url}\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen></iframe>`;
+      codeBox.textContent = iframe;
+      preview.src = url;
     }
 
     document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updateCode));
