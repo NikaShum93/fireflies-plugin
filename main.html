@@ -27,8 +27,7 @@
     const sizeParam = parseInt(urlParams.get("fireflySize") || 4);
 
     const translucent = colorParam === "translucent";
-    const rainbow = colorParam === "rainbow" || translucent;
-    const shimmer = effect === "shimmer";
+    const rainbow = colorParam === "rainbow";
     const pulse = effect === "pulse";
 
     const canvas = document.getElementById("fireflies");
@@ -72,17 +71,17 @@
         }
 
         let fillColor = colorParam;
-        if (rainbow) {
-          fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
-          f.hue = (f.hue + 0.5) % 360;
-        } else if (shimmer) {
+        if (translucent) {
           const alpha = 0.6 + 0.3 * Math.sin(f.phase / 5);
           const hue = (f.hue + f.phase) % 360;
           fillColor = `hsla(${hue}, 100%, 75%, ${alpha})`;
           f.phase++;
+        } else if (rainbow) {
+          fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
+          f.hue = (f.hue + 0.5) % 360;
         }
 
-        const centerAlpha = f.r < 4 ? 1 : 0.7;
+        const centerAlpha = f.r < 4 ? 1 : 0.9;
         const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
         gradient.addColorStop(0, fillColor.replace(/(\d?\.?\d+)\)$/g, `${centerAlpha})`));
         gradient.addColorStop(1, "transparent");
