@@ -50,8 +50,8 @@
     const fireflies = Array.from({length: 60}, () => {
       const baseSize = Math.random() * sizeParam + sizeParam / 2;
       return {
-        x: Math.random() * width,
-        y: Math.random() * height,
+        x: Math.random() * (width - baseSize * 2) + baseSize,
+        y: Math.random() * (height - baseSize * 2) + baseSize,
         baseSize,
         r: baseSize,
         dx: Math.random() * 0.5 - 0.25,
@@ -67,8 +67,9 @@
       fireflies.forEach(f => {
         f.x += f.dx;
         f.y += f.dy;
-        if (f.x < 0 || f.x > width) f.dx *= -1;
-        if (f.y < 0 || f.y > height) f.dy *= -1;
+        const margin = f.r;
+        if (f.x < margin || f.x > width - margin) f.dx *= -1;
+        if (f.y < margin || f.y > height - margin) f.dy *= -1;
 
         let currentSize = f.r;
         if (effect === "pulse") {
@@ -81,9 +82,9 @@
           fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
           f.hue = (f.hue + 0.5) % 360;
         } else if (shimmer) {
-          const alpha = 0.4 + 0.3 * Math.sin(f.phase / 7);
-          fillColor = hexToRGBA(colorParam, alpha);
-          f.hue = (f.hue + 1) % 360;
+          const alpha = 0.5 + 0.3 * Math.sin(f.phase / 5);
+          const hue = (f.hue + f.phase) % 360;
+          fillColor = `hsla(${hue}, 100%, 75%, ${alpha})`;
           f.phase++;
         }
 
@@ -106,7 +107,8 @@
               trailColor = `hsla(${p.hue}, 100%, 70%, ${0.3 * (i + 1) / f.trail.length})`;
             } else if (shimmer) {
               const alpha = 0.3 * (i + 1) / f.trail.length;
-              trailColor = hexToRGBA(colorParam, alpha);
+              const hue = (p.hue + p.phase) % 360;
+              trailColor = `hsla(${hue}, 100%, 75%, ${alpha})`;
             }
 
             const trailGradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
