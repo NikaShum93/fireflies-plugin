@@ -10,7 +10,6 @@
       background: transparent;
       overflow: hidden;
     }
-
     canvas {
       position: absolute;
       width: 100%;
@@ -20,8 +19,8 @@
   </style>
 </head>
 <body>
-  <canvas id="fireflies"></canvas>
-  <canvas id="fogLayer"></canvas>
+  <canvas id="fogCanvas"></canvas>
+  <canvas id="firefliesCanvas"></canvas>
 
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -30,15 +29,21 @@
     const rainbow = color === "rainbow";
     const shimmer = color === "shimmer";
 
-    const canvas = document.getElementById("fireflies");
-    const fogCanvas = document.getElementById("fogLayer");
-    const ctx = canvas.getContext("2d");
+    const fogEnabled = params.get("fog") === "true";
+    const fogColor = params.get("fogColor") || "#ffffff";
+    const fogOpacity = parseFloat(params.get("fogOpacity")) || 0.2;
+
+    const baseSize = parseInt(params.get("fireflySize")) || 4;
+
+    const firefliesCanvas = document.getElementById("firefliesCanvas");
+    const fogCanvas = document.getElementById("fogCanvas");
+    const ctx = firefliesCanvas.getContext("2d");
     const fogCtx = fogCanvas.getContext("2d");
 
     let width, height;
     function resize() {
-      width = canvas.width = fogCanvas.width = window.innerWidth;
-      height = canvas.height = fogCanvas.height = window.innerHeight;
+      width = firefliesCanvas.width = fogCanvas.width = window.innerWidth;
+      height = firefliesCanvas.height = fogCanvas.height = window.innerHeight;
     }
     window.addEventListener("resize", resize);
     resize();
@@ -49,46 +54,54 @@
       r: Math.random() * 1.5 + 1,
       dx: Math.random() * 0.6 - 0.3,
       dy: Math.random() * 0.6 - 0.3,
-      hue: Math.random() * 360,
-      baseR: Math.random() * 1.5 + 1
+      hue: Math.random() * 360
+    }));
+
+    // Туман как анимированная дымка
+    const fogParticles = Array.from({ length: 40 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: Math.random() * 150 + 100,
+      dx: (Math.random() - 0.5) * 0.2,
+      dy: (Math.random() - 0.5) * 0.2
     }));
 
     function drawFog() {
       fogCtx.clearRect(0, 0, width, height);
-      fogCtx.fillStyle = "rgba(255,255,255,0.03)";
-      for (let i = 0; i < 100; i++) {
-        const x = Math.random() * width;
-        const y = Math.random() * height;
-        const r = Math.random() * 100 + 50;
+      fogParticles.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < -p.r) p.x = width + p.r;
+        if (p.x > width + p.r) p.x = -p.r;
+        if (p.y < -p.r) p.y = height + p.r;
+        if (p.y > height + p.r) p.y = -p.r;
+
+        const gradient = fogCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+        gradient.addColorStop(0, fogColor.replace(")", `, ${fogOpacity})`).replace("rgb", "rgba"));
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+        fogCtx.fillStyle = gradient;
         fogCtx.beginPath();
-        fogCtx.arc(x, y, r, 0, Math.PI * 2);
+        fogCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         fogCtx.fill();
-      }
+      });
     }
 
     function draw() {
       ctx.clearRect(0, 0, width, height);
-      if (effect === "fog") drawFog();
+      if (fogEnabled) drawFog();
 
       fireflies.forEach((f, i) => {
-        // движение
         f.x += f.dx;
         f.y += f.dy;
         if (f.x < 0 || f.x > width) f.dx *= -1;
         if (f.y < 0 || f.y > height) f.dy *= -1;
 
-        // эффекты
-        let radius = f.baseR;
+        let radius = baseSize;
         let alpha = 0.8;
         let blur = 10;
 
-        if (effect === "bigglow") {
-          radius = Math.random() * 3 + 2;
-          blur = 25;
-        }
-
         if (effect === "sparkle") {
-          radius = Math.sin(Date.now() / 100 + i) * 1.5 + 2;
+          radius += Math.sin(Date.now() / 200 + i) * 1.5;
           blur = 15;
         }
 
@@ -108,7 +121,6 @@
           ctx.fillRect(0, 0, width, height);
         }
 
-        // цвет
         let fillColor = color;
         if (rainbow) {
           fillColor = `hsla(${f.hue}, 100%, 70%, ${alpha})`;
@@ -117,7 +129,7 @@
           const hue = 180 + 60 * Math.sin(Date.now() / 500 + i);
           fillColor = `hsla(${hue}, 100%, 70%, ${alpha})`;
         } else {
-          fillColor = fillColor + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+          fillColor = color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
         }
 
         ctx.beginPath();
