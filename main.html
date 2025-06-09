@@ -1,149 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <title>Светлячки</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background: transparent;
       overflow: hidden;
+      background: transparent;
     }
     canvas {
-      position: absolute;
-      width: 100%;
-      height: 100%;
       display: block;
     }
   </style>
 </head>
 <body>
-  <canvas id="fogCanvas"></canvas>
-  <canvas id="firefliesCanvas"></canvas>
+<canvas id="canvas"></canvas>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const color = params.get("color") || "#ffffaa";
-    const effect = params.get("effect") || "glow";
-    const rainbow = color === "rainbow";
-    const shimmer = color === "shimmer";
+<script>
+  const url = new URL(window.location.href);
+  const color = url.searchParams.get('color') || '#ffffaa';
+  const effect = url.searchParams.get('effect') || 'glow';
+  const fogEnabled = url.searchParams.get('fog') === 'true';
+  const fogColor = url.searchParams.get('fogColor') || '#ffffff';
+  const fogOpacity = parseFloat(url.searchParams.get('fogOpacity')) || 0.3;
+  const baseSize = parseInt(url.searchParams.get('fireflySize')) || 4;
 
-    const fogEnabled = params.get("fog") === "true";
-    const fogColor = params.get("fogColor") || "#ffffff";
-    const fogOpacity = parseFloat(params.get("fogOpacity")) || 0.2;
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
 
-    const baseSize = parseInt(params.get("fireflySize")) || 4;
-
-    const firefliesCanvas = document.getElementById("firefliesCanvas");
-    const fogCanvas = document.getElementById("fogCanvas");
-    const ctx = firefliesCanvas.getContext("2d");
-    const fogCtx = fogCanvas.getContext("2d");
-
-    let width, height;
-    function resize() {
-      width = firefliesCanvas.width = fogCanvas.width = window.innerWidth;
-      height = firefliesCanvas.height = fogCanvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resize);
-    resize();
-
-    const fireflies = Array.from({ length: 50 }, () => ({
+  const fireflies = [];
+  for (let i = 0; i < 60; i++) {
+    fireflies.push({
       x: Math.random() * width,
       y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
       r: Math.random() * 1.5 + 1,
-      dx: Math.random() * 0.6 - 0.3,
-      dy: Math.random() * 0.6 - 0.3,
-      hue: Math.random() * 360
-    }));
+      scale: Math.random() * 0.7 + 0.7,
+      alpha: Math.random() * 0.5 + 0.5
+    });
+  }
 
-    // Туман как анимированная дымка
-    const fogParticles = Array.from({ length: 40 }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      r: Math.random() * 150 + 100,
-      dx: (Math.random() - 0.5) * 0.2,
-      dy: (Math.random() - 0.5) * 0.2
-    }));
-
-    function drawFog() {
-      fogCtx.clearRect(0, 0, width, height);
-      fogParticles.forEach(p => {
-        p.x += p.dx;
-        p.y += p.dy;
-        if (p.x < -p.r) p.x = width + p.r;
-        if (p.x > width + p.r) p.x = -p.r;
-        if (p.y < -p.r) p.y = height + p.r;
-        if (p.y > height + p.r) p.y = -p.r;
-
-        const gradient = fogCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-        gradient.addColorStop(0, fogColor.replace(")", `, ${fogOpacity})`).replace("rgb", "rgba"));
-        gradient.addColorStop(1, "rgba(0,0,0,0)");
-        fogCtx.fillStyle = gradient;
-        fogCtx.beginPath();
-        fogCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        fogCtx.fill();
-      });
+  function drawFog() {
+    if (fogEnabled) {
+      const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height));
+      gradient.addColorStop(0, `${fogColor}${Math.round(fogOpacity * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(1, `${fogColor}00`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
     }
+  }
 
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      if (fogEnabled) drawFog();
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+    drawFog();
 
-      fireflies.forEach((f, i) => {
-        f.x += f.dx;
-        f.y += f.dy;
-        if (f.x < 0 || f.x > width) f.dx *= -1;
-        if (f.y < 0 || f.y > height) f.dy *= -1;
+    fireflies.forEach(f => {
+      f.x += f.vx;
+      f.y += f.vy;
 
-        let radius = baseSize;
-        let alpha = 0.8;
-        let blur = 10;
+      if (f.x < 0 || f.x > width) f.vx *= -1;
+      if (f.y < 0 || f.y > height) f.vy *= -1;
 
-        if (effect === "sparkle") {
-          radius += Math.sin(Date.now() / 200 + i) * 1.5;
-          blur = 15;
-        }
+      const radius = baseSize * f.scale;
+      const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius);
+      gradient.addColorStop(0, color === 'rainbow' ? `hsl(${(f.x + f.y) % 360}, 100%, 80%)` :
+        color === 'shimmer' ? `rgba(255,255,255,${f.alpha})` : color);
+      gradient.addColorStop(1, 'transparent');
 
-        if (effect === "pulse") {
-          alpha = 0.5 + 0.5 * Math.sin(Date.now() / 500 + i);
-        }
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
 
-        if (effect === "chaos") {
-          f.dx += Math.random() * 0.2 - 0.1;
-          f.dy += Math.random() * 0.2 - 0.1;
-          f.dx = Math.max(-1, Math.min(1, f.dx));
-          f.dy = Math.max(-1, Math.min(1, f.dy));
-        }
+    requestAnimationFrame(draw);
+  }
 
-        if (effect === "trails") {
-          ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-          ctx.fillRect(0, 0, width, height);
-        }
-
-        let fillColor = color;
-        if (rainbow) {
-          fillColor = `hsla(${f.hue}, 100%, 70%, ${alpha})`;
-          f.hue = (f.hue + 0.5) % 360;
-        } else if (shimmer) {
-          const hue = 180 + 60 * Math.sin(Date.now() / 500 + i);
-          fillColor = `hsla(${hue}, 100%, 70%, ${alpha})`;
-        } else {
-          fillColor = color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
-        }
-
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = fillColor;
-        ctx.shadowColor = fillColor;
-        ctx.shadowBlur = blur;
-        ctx.fill();
-      });
-
-      requestAnimationFrame(draw);
-    }
-
-    draw();
-  </script>
+  draw();
+</script>
 </body>
 </html>
