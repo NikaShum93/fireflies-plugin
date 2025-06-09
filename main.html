@@ -28,7 +28,7 @@
 
     const rainbow = colorParam === "rainbow";
     const shimmer = effect === "shimmer" || effect === "translucent";
-    const withTrail = effect === "trail" || effect === "translucent";
+    const pulse = effect === "pulse";
 
     const canvas = document.getElementById("fireflies");
     const ctx = canvas.getContext("2d");
@@ -51,8 +51,7 @@
         dx: Math.random() * 0.5 - 0.25,
         dy: Math.random() * 0.5 - 0.25,
         hue: Math.random() * 360,
-        phase: Math.random() * 100,
-        trail: []
+        phase: Math.random() * 100
       };
     });
 
@@ -66,7 +65,7 @@
         if (f.y < margin || f.y > height - margin) f.dy *= -1;
 
         let currentSize = f.r;
-        if (effect === "pulse") {
+        if (pulse) {
           currentSize *= 1 + 0.3 * Math.sin(f.phase / 10);
           f.phase++;
         }
@@ -76,46 +75,21 @@
           fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
           f.hue = (f.hue + 0.5) % 360;
         } else if (shimmer) {
-          const alpha = 0.5 + 0.3 * Math.sin(f.phase / 5);
+          const alpha = 0.6 + 0.3 * Math.sin(f.phase / 5);
           const hue = (f.hue + f.phase) % 360;
           fillColor = `hsla(${hue}, 100%, 75%, ${alpha})`;
           f.phase++;
         }
 
-        const centerAlpha = f.r < 4 ? 1 : 0.6;
+        const centerAlpha = f.r < 4 ? 1 : 0.7;
         const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-        gradient.addColorStop(0, fillColor.replace(/[\d\.]+\)$/g, `${centerAlpha})`));
+        gradient.addColorStop(0, fillColor.replace(/(\d?\.?\d+)\)$/g, `${centerAlpha})`));
         gradient.addColorStop(1, "transparent");
 
         ctx.beginPath();
         ctx.fillStyle = gradient;
         ctx.arc(f.x, f.y, currentSize, 0, Math.PI * 2);
         ctx.fill();
-
-        if (withTrail) {
-          f.trail.push({x: f.x, y: f.y, size: currentSize, hue: f.hue, phase: f.phase});
-          if (f.trail.length > 10) f.trail.shift();
-
-          f.trail.forEach((p, i) => {
-            let trailColor = colorParam;
-            if (rainbow) {
-              trailColor = `hsla(${p.hue}, 100%, 70%, ${0.3 * (i + 1) / f.trail.length})`;
-            } else if (shimmer) {
-              const alpha = 0.3 * (i + 1) / f.trail.length;
-              const hue = (p.hue + p.phase) % 360;
-              trailColor = `hsla(${hue}, 100%, 75%, ${alpha})`;
-            }
-
-            const trailGradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-            trailGradient.addColorStop(0, trailColor);
-            trailGradient.addColorStop(1, "transparent");
-
-            ctx.beginPath();
-            ctx.fillStyle = trailGradient;
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-          });
-        }
       });
       requestAnimationFrame(draw);
     }
