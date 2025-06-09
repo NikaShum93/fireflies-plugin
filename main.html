@@ -70,25 +70,22 @@
           f.phase++;
         }
 
-        let gradient;
+        let fillColor;
         if (translucent) {
-          const alpha = 0.4 + 0.3 * Math.sin(f.phase / 5);
-          const hue = (f.hue + f.phase) % 360;
-          gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-          gradient.addColorStop(0, `hsla(${hue}, 100%, 75%, ${Math.min(alpha + 0.2, 1)})`);
-          gradient.addColorStop(1, `hsla(${hue}, 100%, 75%, 0)`);
-          f.phase++;
+          // Переливающийся режим: радужный с плавной сменой hue
+          fillColor = `hsla(${f.hue}, 100%, 75%, 1)`;
+          f.hue = (f.hue + 0.7) % 360;
+        } else if (rainbow) {
+          fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
+          f.hue = (f.hue + 0.5) % 360;
         } else {
-          let fillColor = colorParam;
-          if (rainbow) {
-            fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
-            f.hue = (f.hue + 0.5) % 360;
-          }
-          const centerAlpha = f.r < 4 ? 1 : 0.9;
-          gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-          gradient.addColorStop(0, fillColor.replace(/[\d\.]+\)$/g, `${centerAlpha})`));
-          gradient.addColorStop(1, "transparent");
+          fillColor = colorParam;
         }
+
+        const centerAlpha = f.r < 4 ? 1 : 0.9;
+        const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
+        gradient.addColorStop(0, fillColor.replace(/(\d?\.?\d+)\)$/g, `${centerAlpha})`));
+        gradient.addColorStop(1, "transparent");
 
         ctx.beginPath();
         ctx.fillStyle = gradient;
@@ -97,7 +94,6 @@
       });
       requestAnimationFrame(draw);
     }
-
     draw();
   </script>
 </body>
