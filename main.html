@@ -67,7 +67,6 @@
         let currentSize = f.r;
         if (pulse) {
           currentSize *= 1 + 0.3 * Math.sin(f.phase / 10);
-          f.phase++;
         }
 
         let fillColor = colorParam;
@@ -75,15 +74,15 @@
           const alpha = 0.6 + 0.3 * Math.sin(f.phase / 5);
           const hue = (f.hue + f.phase) % 360;
           fillColor = `hsla(${hue}, 100%, 75%, ${alpha})`;
-          f.phase++;
         } else if (rainbow) {
           fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
-          f.hue = (f.hue + 0.5) % 360;
         }
+
+        f.phase += 1;
 
         const centerAlpha = f.r < 4 ? 1 : 0.9;
         const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-        gradient.addColorStop(0, fillColor.replace(/(\d?\.?\d+)\)$/g, `${centerAlpha})`));
+        gradient.addColorStop(0, fillColor.replace(/[\d\.]+\)$/g, `${centerAlpha})`));
         gradient.addColorStop(1, "transparent");
 
         ctx.beginPath();
@@ -93,6 +92,7 @@
       });
       requestAnimationFrame(draw);
     }
+
     draw();
   </script>
 </body>
