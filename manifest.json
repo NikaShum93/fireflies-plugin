@@ -1,0 +1,10 @@
+
+{
+  "manifest_version": 1,
+  "name": "Fireflies Mask",
+  "display_name": "Светлячки by Nika",
+  "type": "overlay",
+  "main": "main.html",
+  "edit": "edit.html",
+  "version": "1.0.0"
+}
