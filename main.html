@@ -26,8 +26,9 @@
     const effect = urlParams.get("effect") || "glow";
     const sizeParam = parseInt(urlParams.get("fireflySize") || 4);
 
-    const rainbow = colorParam === "rainbow";
-    const shimmer = effect === "shimmer" || effect === "translucent";
+    const translucent = colorParam === "translucent";
+    const rainbow = colorParam === "rainbow" || translucent;
+    const shimmer = effect === "shimmer";
     const pulse = effect === "pulse";
 
     const canvas = document.getElementById("fireflies");
