@@ -73,15 +73,16 @@
 
         let gradient;
         if (prism) {
-          // Эффект призмы: белый центр, плавные цветовые кольца
+          // Нежная призма: белый центр, деликатные цвета по краю
           const baseHue = (f.hue + f.phase) % 360;
           gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-          gradient.addColorStop(0, `hsla(0,0%,100%,0.95)`);
-          gradient.addColorStop(0.3, `hsla(${(baseHue + 30) % 360},100%,75%,0.5)`);
-          gradient.addColorStop(0.55, `hsla(${(baseHue + 100) % 360},100%,65%,0.35)`);
-          gradient.addColorStop(0.75, `hsla(${(baseHue + 180) % 360},100%,55%,0.2)`);
-          gradient.addColorStop(1, `hsla(${(baseHue + 240) % 360},100%,60%,0)`);
-          f.hue += 0.1; // очень медленный переход по цвету
+          gradient.addColorStop(0, `hsla(0,0%,100%,0.97)`);
+          gradient.addColorStop(0.25, `hsla(0,0%,100%,0.6)`);
+          gradient.addColorStop(0.45, `hsla(${(baseHue + 30) % 360},80%,70%,0.28)`);
+          gradient.addColorStop(0.65, `hsla(${(baseHue + 110) % 360},80%,65%,0.17)`);
+          gradient.addColorStop(0.9, `hsla(${(baseHue + 200) % 360},80%,60%,0.07)`);
+          gradient.addColorStop(1, `hsla(${(baseHue + 240) % 360},80%,60%,0)`);
+          f.hue += 0.08;
         } else if (translucent) {
           const hue = (f.hue + f.phase) % 360;
           const alpha = 0.35 + 0.25 * Math.sin(f.phase / 7);
