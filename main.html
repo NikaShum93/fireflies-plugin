@@ -10,7 +10,6 @@
       background: transparent;
       overflow: hidden;
     }
-
     canvas {
       width: 100%;
       height: 100%;
@@ -21,12 +20,14 @@
 </head>
 <body>
   <canvas id="fireflies"></canvas>
-
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const color = urlParams.get("color") || "#ffffaa";
-    const fireflySize = parseFloat(urlParams.get("fireflySize")) || 4;
+    const effect = urlParams.get("effect") || "glow";
+    const sizeParam = parseInt(urlParams.get("fireflySize") || 4);
+
     const rainbow = color === "rainbow";
+    const shimmer = color === "shimmer" || color === "translucent";
 
     const canvas = document.getElementById("fireflies");
     const ctx = canvas.getContext("2d");
@@ -38,13 +39,14 @@
     window.addEventListener("resize", resize);
     resize();
 
-    const fireflies = Array.from({length: 50}, () => ({
+    const fireflies = Array.from({length: 60}, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      r: (Math.random() * 0.5 + 0.5) * fireflySize,
-      dx: Math.random() * 0.4 - 0.2,
-      dy: Math.random() * 0.4 - 0.2,
-      hue: Math.random() * 360
+      r: Math.random() * sizeParam + sizeParam / 2,
+      dx: Math.random() * 0.5 - 0.25,
+      dy: Math.random() * 0.5 - 0.25,
+      hue: Math.random() * 360,
+      phase: Math.random() * 100
     }));
 
     function draw() {
@@ -55,23 +57,34 @@
         if (f.x < 0 || f.x > width) f.dx *= -1;
         if (f.y < 0 || f.y > height) f.dy *= -1;
 
-        const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
-        if (rainbow) {
-          const colorStop = `hsla(${f.hue}, 100%, 70%, `;
-          gradient.addColorStop(0, colorStop + "1)");
-          gradient.addColorStop(1, colorStop + "0)");
-          f.hue = (f.hue + 0.5) % 360;
-        } else {
-          gradient.addColorStop(0, color);
-          gradient.addColorStop(1, color + "00"); // к полной прозрачности
+        let currentSize = f.r;
+        if (effect === "pulse") {
+          currentSize *= 1 + 0.3 * Math.sin(f.phase / 10);
+          f.phase++;
         }
 
+        const gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
+        let fillColor = color;
+
+        if (rainbow) {
+          fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
+          f.hue = (f.hue + 0.5) % 360;
+        } else if (shimmer) {
+          const alpha = 0.4 + 0.3 * Math.sin(f.phase / 7);
+          fillColor = `hsla(${f.hue}, 100%, 80%, ${alpha})`;
+          f.hue = (f.hue + 1) % 360;
+        }
+
+        gradient.addColorStop(0, fillColor);
+        gradient.addColorStop(1, "transparent");
+
+        ctx.beginPath();
         ctx.fillStyle = gradient;
-        ctx.fillRect(f.x - f.r, f.y - f.r, f.r * 2, f.r * 2);
+        ctx.arc(f.x, f.y, currentSize, 0, Math.PI * 2);
+        ctx.fill();
       });
       requestAnimationFrame(draw);
     }
-
     draw();
   </script>
 </body>
