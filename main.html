@@ -27,7 +27,7 @@
     const sizeParam = parseInt(urlParams.get("fireflySize") || 4);
 
     const rainbow = colorParam === "rainbow";
-    const shimmer = colorParam === "shimmer" || colorParam === "translucent";
+    const shimmer = effect === "shimmer" || effect === "translucent";
     const canvas = document.getElementById("fireflies");
     const ctx = canvas.getContext("2d");
     let width, height;
