@@ -22,7 +22,7 @@
   <canvas></canvas>
   <script>
     (function() {
-      // Получаем параметры из URL
+      // Параметры из URL
       const urlParams = new URLSearchParams(window.location.search);
       const colorParam = urlParams.get("color") || "#ffffaa";
       const effect = urlParams.get("effect") || "glow";
@@ -36,37 +36,38 @@
       const canvas = document.querySelector("canvas");
       const ctx = canvas.getContext("2d");
       let width, height;
+      let fireflies = [];
 
-      function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      }
-      window.addEventListener("resize", resize);
-      resize();
-
-      // Генерируем уникальный seed для каждого iframe
-      const seed = Date.now() + Math.floor(Math.random() * 10000);
-
-      // Случайная скорость, но не слишком маленькая
+      // Минимальная скорость
       function randomSpeed() {
         let v = (Math.random() - 0.5) * 0.8;
         if (Math.abs(v) < 0.13) v = 0.13 * (v < 0 ? -1 : 1);
         return v;
       }
 
-      const fireflies = Array.from({length: 60}, () => {
-        const baseSize = Math.random() * sizeParam + sizeParam / 2;
-        return {
-          x: Math.random() * (width - baseSize * 2) + baseSize,
-          y: Math.random() * (height - baseSize * 2) + baseSize,
-          baseSize,
-          r: baseSize,
-          dx: randomSpeed(),
-          dy: randomSpeed(),
-          hue: Math.random() * 360,
-          phase: Math.random() * 100
-        };
-      });
+      function createFireflies() {
+        fireflies = Array.from({length: 60}, () => {
+          const baseSize = Math.random() * sizeParam + sizeParam / 2;
+          return {
+            x: Math.random() * (width - baseSize * 2) + baseSize,
+            y: Math.random() * (height - baseSize * 2) + baseSize,
+            baseSize,
+            r: baseSize,
+            dx: randomSpeed(),
+            dy: randomSpeed(),
+            hue: Math.random() * 360,
+            phase: Math.random() * 100
+          };
+        });
+      }
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createFireflies();
+      }
+      window.addEventListener("resize", resize);
+      resize();
 
       function draw() {
         ctx.clearRect(0, 0, width, height);
@@ -74,12 +75,11 @@
           f.x += f.dx;
           f.y += f.dy;
 
-          // Отскок и небольшой рандом, чтобы не залипали
+          // Отскок и рандом, чтобы не залипали
           const margin = f.r;
           if (f.x < margin || f.x > width - margin) {
             f.dx *= -1;
             f.dx += (Math.random() - 0.5) * 0.14;
-            // Не даём стоять
             if (Math.abs(f.dx) < 0.11) f.dx += (Math.random() > 0.5 ? 0.12 : -0.12);
             f.x = Math.max(margin, Math.min(f.x, width - margin));
           }
@@ -98,7 +98,7 @@
 
           let gradient;
           if (prism) {
-            // Мягкая призма: белый центр, деликатные цвета по краю
+            // Призма: белый центр, деликатные цвета по краю
             const baseHue = (f.hue + f.phase) % 360;
             gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
             gradient.addColorStop(0, `hsla(0,0%,100%,0.97)`);
