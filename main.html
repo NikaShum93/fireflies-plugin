@@ -19,99 +19,125 @@
   </style>
 </head>
 <body>
-  <canvas id="fireflies"></canvas>
+  <canvas></canvas>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const colorParam = urlParams.get("color") || "#ffffaa";
-    const effect = urlParams.get("effect") || "glow";
-    const sizeParam = parseInt(urlParams.get("fireflySize") || 4);
+    (function() {
+      // Получаем параметры из URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const colorParam = urlParams.get("color") || "#ffffaa";
+      const effect = urlParams.get("effect") || "glow";
+      const sizeParam = parseInt(urlParams.get("fireflySize") || 4);
 
-    const translucent = colorParam === "translucent";
-    const rainbow = colorParam === "rainbow";
-    const prism = colorParam === "prism";
-    const pulse = effect === "pulse";
+      const translucent = colorParam === "translucent";
+      const rainbow = colorParam === "rainbow";
+      const prism = colorParam === "prism";
+      const pulse = effect === "pulse";
 
-    const canvas = document.getElementById("fireflies");
-    const ctx = canvas.getContext("2d");
-    let width, height;
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      let width, height;
 
-    function resize() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resize);
-    resize();
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
 
-    const fireflies = Array.from({length: 60}, () => {
-      const baseSize = Math.random() * sizeParam + sizeParam / 2;
-      return {
-        x: Math.random() * (width - baseSize * 2) + baseSize,
-        y: Math.random() * (height - baseSize * 2) + baseSize,
-        baseSize,
-        r: baseSize,
-        dx: Math.random() * 0.5 - 0.25,
-        dy: Math.random() * 0.5 - 0.25,
-        hue: Math.random() * 360,
-        phase: Math.random() * 100
-      };
-    });
+      // Генерируем уникальный seed для каждого iframe
+      const seed = Date.now() + Math.floor(Math.random() * 10000);
 
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      fireflies.forEach(f => {
-        f.x += f.dx;
-        f.y += f.dy;
-        const margin = f.r;
-        if (f.x < margin || f.x > width - margin) f.dx *= -1;
-        if (f.y < margin || f.y > height - margin) f.dy *= -1;
+      // Случайная скорость, но не слишком маленькая
+      function randomSpeed() {
+        let v = (Math.random() - 0.5) * 0.8;
+        if (Math.abs(v) < 0.13) v = 0.13 * (v < 0 ? -1 : 1);
+        return v;
+      }
 
-        let currentSize = f.r;
-        if (pulse) {
-          currentSize *= 1 + 0.3 * Math.sin(f.phase / 10);
-          f.phase++;
-        }
-
-        let gradient;
-        if (prism) {
-          // Нежная призма: белый центр, деликатные цвета по краю
-          const baseHue = (f.hue + f.phase) % 360;
-          gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-          gradient.addColorStop(0, `hsla(0,0%,100%,0.97)`);
-          gradient.addColorStop(0.25, `hsla(0,0%,100%,0.6)`);
-          gradient.addColorStop(0.45, `hsla(${(baseHue + 30) % 360},80%,70%,0.28)`);
-          gradient.addColorStop(0.65, `hsla(${(baseHue + 110) % 360},80%,65%,0.17)`);
-          gradient.addColorStop(0.9, `hsla(${(baseHue + 200) % 360},80%,60%,0.07)`);
-          gradient.addColorStop(1, `hsla(${(baseHue + 240) % 360},80%,60%,0)`);
-          f.hue += 0.08;
-        } else if (translucent) {
-          const hue = (f.hue + f.phase) % 360;
-          const alpha = 0.35 + 0.25 * Math.sin(f.phase / 7);
-          gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-          gradient.addColorStop(0, `hsla(0,0%,100%,${alpha + 0.3})`);
-          gradient.addColorStop(0.6, `hsla(${hue},100%,70%,${alpha})`);
-          gradient.addColorStop(1, `hsla(${hue},100%,70%,0)`);
-          f.phase++;
-        } else {
-          let fillColor = colorParam;
-          if (rainbow) {
-            fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
-            f.hue = (f.hue + 0.5) % 360;
-          }
-          const centerAlpha = f.r < 4 ? 1 : 0.9;
-          gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
-          gradient.addColorStop(0, fillColor.replace(/[\d\.]+\)$/g, `${centerAlpha})`));
-          gradient.addColorStop(1, "transparent");
-        }
-
-        ctx.beginPath();
-        ctx.fillStyle = gradient;
-        ctx.arc(f.x, f.y, currentSize, 0, Math.PI * 2);
-        ctx.fill();
+      const fireflies = Array.from({length: 60}, () => {
+        const baseSize = Math.random() * sizeParam + sizeParam / 2;
+        return {
+          x: Math.random() * (width - baseSize * 2) + baseSize,
+          y: Math.random() * (height - baseSize * 2) + baseSize,
+          baseSize,
+          r: baseSize,
+          dx: randomSpeed(),
+          dy: randomSpeed(),
+          hue: Math.random() * 360,
+          phase: Math.random() * 100
+        };
       });
-      requestAnimationFrame(draw);
-    }
 
-    draw();
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        fireflies.forEach(f => {
+          f.x += f.dx;
+          f.y += f.dy;
+
+          // Отскок и небольшой рандом, чтобы не залипали
+          const margin = f.r;
+          if (f.x < margin || f.x > width - margin) {
+            f.dx *= -1;
+            f.dx += (Math.random() - 0.5) * 0.14;
+            // Не даём стоять
+            if (Math.abs(f.dx) < 0.11) f.dx += (Math.random() > 0.5 ? 0.12 : -0.12);
+            f.x = Math.max(margin, Math.min(f.x, width - margin));
+          }
+          if (f.y < margin || f.y > height - margin) {
+            f.dy *= -1;
+            f.dy += (Math.random() - 0.5) * 0.14;
+            if (Math.abs(f.dy) < 0.11) f.dy += (Math.random() > 0.5 ? 0.12 : -0.12);
+            f.y = Math.max(margin, Math.min(f.y, height - margin));
+          }
+
+          let currentSize = f.r;
+          if (pulse) {
+            currentSize *= 1 + 0.3 * Math.sin(f.phase / 10);
+            f.phase++;
+          }
+
+          let gradient;
+          if (prism) {
+            // Мягкая призма: белый центр, деликатные цвета по краю
+            const baseHue = (f.hue + f.phase) % 360;
+            gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
+            gradient.addColorStop(0, `hsla(0,0%,100%,0.97)`);
+            gradient.addColorStop(0.25, `hsla(0,0%,100%,0.6)`);
+            gradient.addColorStop(0.45, `hsla(${(baseHue + 30) % 360},80%,70%,0.28)`);
+            gradient.addColorStop(0.65, `hsla(${(baseHue + 110) % 360},80%,65%,0.17)`);
+            gradient.addColorStop(0.9, `hsla(${(baseHue + 200) % 360},80%,60%,0.07)`);
+            gradient.addColorStop(1, `hsla(${(baseHue + 240) % 360},80%,60%,0)`);
+            f.hue += 0.08;
+          } else if (translucent) {
+            const hue = (f.hue + f.phase) % 360;
+            const alpha = 0.35 + 0.25 * Math.sin(f.phase / 7);
+            gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
+            gradient.addColorStop(0, `hsla(0,0%,100%,${alpha + 0.3})`);
+            gradient.addColorStop(0.6, `hsla(${hue},100%,70%,${alpha})`);
+            gradient.addColorStop(1, `hsla(${hue},100%,70%,0)`);
+            f.phase++;
+          } else {
+            let fillColor = colorParam;
+            if (rainbow) {
+              fillColor = `hsla(${f.hue}, 100%, 70%, 1)`;
+              f.hue = (f.hue + 0.5) % 360;
+            }
+            const centerAlpha = f.r < 4 ? 1 : 0.9;
+            gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, currentSize);
+            gradient.addColorStop(0, fillColor.replace(/[\d\.]+\)$/g, `${centerAlpha})`));
+            gradient.addColorStop(1, "transparent");
+          }
+
+          ctx.beginPath();
+          ctx.fillStyle = gradient;
+          ctx.arc(f.x, f.y, currentSize, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    })();
   </script>
 </body>
 </html>
